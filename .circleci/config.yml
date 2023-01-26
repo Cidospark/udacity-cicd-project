@@ -27,6 +27,25 @@ commands:
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflow_id >> 
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >>
             
+  revert-migrations:
+    description: Revert the last migration.
+    parameters:
+      workflow_id:
+        type: string
+        default: ${CIRCLE_WORKFLOW_ID:0:7}     
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            SUCCESS=$(curl --insecure https://kvdb.io/${KVDB_BUCKET_ID}/migration_<< parameters.workflow_id >>)
+            if(( $SUCCESS == 1 )); 
+            then
+              cd ~/project/backend
+              npm install
+              npm run migration:revert
+            fi
+            
 jobs:
   build-frontend:
     docker:
@@ -159,12 +178,13 @@ jobs:
           fingerprints: ["48:2b:dc:7b:92:72:30:8f:a1:ca:39:b5:5e:7f:91:47"]
       - attach_workspace:
           at: ~/
-      - install_awscli
       - run:
           name: Install dependencies
           command: |
             apk add --update ansible
-            ansible --version
+            apk add --update --no-cache python3 py3-pip
+            /usr/local/bin/python -m pip install --upgrade pip
+            pip install awscli
       - run:
           name: Configure server
           command: |
@@ -179,7 +199,6 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - install_awscli
       - run:
           name: Run migrations
           command: |
@@ -196,6 +215,7 @@ jobs:
             fi
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations
 
 workflows:
   default:
