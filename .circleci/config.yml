@@ -262,7 +262,6 @@ jobs:
       - image: python:3.8-alpine3.15
     steps:
       - checkout
-      - install_awscli
       - add_ssh_keys: 
           fingerprints: ["48:2b:dc:7b:92:72:30:8f:a1:ca:39:b5:5e:7f:91:47"]
       - attach_workspace:
@@ -273,7 +272,8 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible
-            apk add --update tar gzip nodejs
+            apk add --update tar gzip nodejs curl
+      - install_awscli
       - run:
           name: Package Backend
           command: |
