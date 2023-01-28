@@ -256,6 +256,42 @@ jobs:
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations
+      
+  deploy-backend:
+    docker:
+      - image: python:3.8-alpine3.15
+    steps:
+      - checkout
+      - install_awscli
+      - add_ssh_keys: 
+          fingerprints: ["48:2b:dc:7b:92:72:30:8f:a1:ca:39:b5:5e:7f:91:47"]
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible
+            apk add --update tar gzip nodejs
+      - run:
+          name: Package Backend
+          command: |
+            tar -C backend -czvf artifact.tar.gz .
+            cp artifact.tar.gz  ~/
+      - run:
+          name: Deploy backend
+          command: |
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+            
+            echo "Deploying backend"
+            ansible-playbook -i inventory.txt deploy-backend.yml 
+
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations
 
 workflows:
   default:
@@ -280,5 +316,7 @@ workflows:
       - run-migrations:
           requires: [configure-infrastructure]
       - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
           requires: [run-migrations]
       
