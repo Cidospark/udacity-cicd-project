@@ -273,7 +273,7 @@ jobs:
           command: |
             apk add --update ansible
             apk add --update tar gzip nodejs curl
-      - install_awscli
+            pip install awscli
       - run:
           name: Package Backend
           command: |
