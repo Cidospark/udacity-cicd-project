@@ -171,9 +171,10 @@ jobs:
           
   configure-infrastructure:
     docker:
-      - image: cimg/python:3.10 
+      - image: cimg/base:stable 
     steps:
       - checkout
+      - install_awscli
       - add_ssh_keys: 
           fingerprints: ["48:2b:dc:7b:92:72:30:8f:a1:ca:39:b5:5e:7f:91:47"]
       - attach_workspace:
@@ -181,7 +182,10 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            pip install ansible
+              sudo apt update 
+              sudo add-apt-repository --yes --update ppa:ansible/ansible
+              sudo apt install -y python3
+              sudo apt install -y ansible
       - run:
           name: Configure server
           command: |
