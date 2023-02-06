@@ -171,10 +171,9 @@ jobs:
           
   configure-infrastructure:
     docker:
-      - image: cimg/base:stable 
+      - image: python:3.10-alpine3.16 
     steps:
       - checkout
-      - install_awscli
       - add_ssh_keys: 
           fingerprints: ["48:2b:dc:7b:92:72:30:8f:a1:ca:39:b5:5e:7f:91:47"]
       - attach_workspace:
@@ -182,10 +181,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            sudo apt update
-            sudo apt install software-properties-common -y
-            sudo add-apt-repository --yes --update ppa:ansible/ansible
-            sudo apt install ansible -y
+            apk add --update --no-cache ansible tar gzip aws-cli openssh
       - run:
           name: Configure server
           command: |
