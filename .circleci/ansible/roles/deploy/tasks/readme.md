@@ -1,1 +1,1 @@
-## Server Deployment playbook.
+## Deployment playbook.
